@@ -19,12 +19,14 @@ import com.zaxxer.hikari.HikariDataSource;
 @PropertySource("classpath:/application.properties")
 public class DatabaseConfiguration {
 	private static final Logger logger = LogManager.getLogger(DatabaseConfiguration.class);
+
 	@Bean
 	@ConfigurationProperties(prefix = "spring.datasource.hikari")
 	public HikariConfig hikariConfig() {
 		return new HikariConfig();
 	}
-	//application.properties에 등록되어 있는 오라클 서버에 물리적인 정보를 읽어준다.
+
+	// application.properties에 등록되어 있는 오라클 서버에 물리적인 정보를 읽어준다.
 	//
 	@Bean
 	public DataSource dataSource() {
@@ -32,20 +34,22 @@ public class DatabaseConfiguration {
 		logger.info("datasource : {}", dataSource);
 		return dataSource;
 	}
+
 	@Autowired
 	private ApplicationContext applicationContext;
-	
+
 	@Bean
 	public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
 		SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
 		sqlSessionFactoryBean.setDataSource(dataSource);
-		//classpath는 src/main/resourcs이고 해당 쿼리가 있는 xml 위치는 본인의 취향대로 위치키시고 그에 맞도록 설정해주면 된다.
+		// classpath는 src/main/resourcs이고 해당 쿼리가 있는 xml 위치는 본인의 취향대로 위치키시고 그에 맞도록 설정해주면
+		// 된다.
 		sqlSessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:/mapper/**/*.xml"));
 		return sqlSessionFactoryBean.getObject();
 	}
-	
+
 	@Bean
 	public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
 		return new SqlSessionTemplate(sqlSessionFactory);
-	}	
+	}
 }
