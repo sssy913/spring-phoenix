@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kh.phoenix.board">
+
+<!--                   관리자 게시판                                  -->	
+
+	
+	<select id="boardList" parameterType="map" resultType="map">
+	SELECT master_title,master_content,master_hit,master_date,master_upddate,master_deldate
+	FROM master_board 
+    	<if test='cb_search != null and cb_search.equals("master_title")'>
+			WHERE mb.master_title like '%'||#{tb_search}||'%'
+		</if>
+		<if test='cb_search != null and cb_search.equals("master_content")'>
+			WHERE mb.master_content like '%'||#{tb_search}||'%'
+		</if>
+	</select>
+	
+	<select id="boardDetail" parameterType="map" resultType="map">
+ 	select 	master_title, master_content, master_date, 
+ 		   	master_upddate, master_deldate, master_hit, file_name
+    From 	master_board mb left join gym_file gf
+    		on mb.master_bno = gf.master_bno 
+	WHERE 	mb.master_bno = #{master_bno}
+	</select>
+	
+	<insert id="boardInsert" parameterType="map">
+		INSERT INTO master_board
+		(master_bno, mem_no, master_title, master_content, master_date,
+		 master_hit, master_upddate, master_deldate, master_type)
+		values(master_board_seq.NEXTVAL, #{mem_no}, #{master_title}, #{master_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), #{master_hit}, 
+		#{master_upddate} ,#{master_deldate},#{master_type} 
+		)
+	</insert>
+
+	<insert id="fileInsert" parameterType="map">
+ 	INSERT INTO gym_file(file_no,qna_bno,review_bno,master_bno,
+ 						 board_type, file_path, file_name, file_type)
+ 	            values(#{file_no},#{qna_bno},#{review_bno},#{master_bno},
+ 	                   #{board_type}, #{file_path},#{file_name},#{file_type})
+ 	</insert>
+
+	
+	<update id="boardUpdate" parameterType="map">
+		UPDATE master_board 
+		SET
+		mem_no = #{mem_no},
+		master_title = #{master_title},
+		master_content = #{master_content},
+		master_date = 0,
+		master_hit = #{master_hit},
+		master_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		master_deldate= 0,
+		master_type=#{master_type}
+		where master_bno = #{master_bno}
+	</update>
+	
+	<update id="boardDelete" parameterType="map">
+		UPDATE master_board
+	 	SET 
+	 	master_date = 0,
+	 	master_upddate = 0,
+	 	master_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE master_bno = #{master_bno}
+	</update>
+	
+<!--                   관리자 게시판                                  -->	
+<!--                   1:1질문 게시판                                  -->	
+	
+	<select id="qnaList" parameterType="map" resultType="map">
+	SELECT qna_title,qna_content, qna_hit, qna_date, qna_upddate, qna_deldate,
+		   qna_secret, qna_status
+	FROM qna_board 
+	</select>
+	
+	
+	<select id="qnaDetail" parameterType="map" resultType="map">
+  	select qna_title, qna_content,qna_date, qna_upddate, 
+         qna_deldate, qna_hit, qna_secret, 
+         qc_writer,qc_content,qc_date ,qc_upddate, qc_deldate, file_name
+    from QNA_COMMENT x LEFT JOIN QNA_BOARD y 
+                      ON x.qna_bno = y.qna_bno
+                      LEFT JOIN GYM_FILE z
+                      ON y.qna_bno = z.qna_bno
+		WHERE y.qna_bno = #{qna_bno}
+	</select>
+	
+	
+	<insert id="qnaInsert" parameterType="map">
+		INSERT INTO qna_board
+		(qna_bno, mem_no, qna_title, qna_content, qna_date,
+		 qna_hit, qna_upddate, qna_deldate, qna_type, qna_secret, qna_status)
+		values(qna_board_seq.NEXTVAL, #{qna_no}, #{qna_title}, #{qna_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), #{qna_hit}, 
+		#{qna_upddate} ,#{qna_deldate},#{qna_type},#{qna_secret},#{qna_status} 
+		)
+	</insert>
+	
+	<update id="qnaUpdate" parameterType="map">
+		UPDATE qna_board 
+		SET
+		mem_no = #{mem_no},
+		qna_title = #{qna_title},
+		qna_content = #{qna_content},
+		qna_date = 0,
+		qna_hit = #{qna_hit},
+		qna_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		qna_deldate= 0,
+		qna_type=#{qna_type}
+		qna_secret=#{qna_secret}
+		qna_status=#{qna_status}
+		where qna_bno = #{qna_bno}
+	</update>
+	
+	<update id="qnaDelete" parameterType="map">
+		UPDATE qna_board
+	 	SET 
+	 	qna_date = 0,
+	 	qna_upddate = 0,
+	 	qna_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE qna_bno = #{qna_bno}
+	</update>
+	
+<!--                      1:1 댓글                                   -->
+	
+	<insert id="qcInsert" parameterType="map">
+		INSERT INTO qna_comment
+		(qna_bno, comm_no, qc_writer, qc_content, qc_date,
+		 qc_upddate, qc_deldate)
+		values(#{qna_bno}, (SELECT NVL((SELECT /*+index_desc(qna_comment comm_no_fk)*/ comm_no
+                FROM qna_comment
+                WHERE rownum = 1
+                AND qna_bno = #{qna_bno}),0)+1 comm_no
+                FROM dual), #{qc_title}, #{qc_content} ,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 
+							#{qc_upddate} ,#{qc_deldate} 
+		)
+	</insert>
+
+	<update id="qcUpdate" parameterType="map">
+		UPDATE qna_comment 
+		SET
+		comm_no = #{comm_no},
+		qc_title = #{qc_title},
+		qc_content = #{qc_content},
+		qc_date = 0,
+		qca_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		qc_deldate= 0,
+		where qna_bno = #{qna_bno}
+		AND comm_no = #{comm_no}
+	</update>
+	
+	<update id="qcDelete" parameterType="map">
+		UPDATE qna_comment
+	 	SET 
+	 	qc_date = 0,
+	 	qc_upddate = 0,
+	 	qc_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE qna_bno = #{qna_bno}
+		AND comm_no = #{comm_no}
+	</update>
+
+<!--                   1:1질문 게시판                                  -->	
+<!--                   리뷰 게시판                                  -->	
+
+	<select id="reviewList" parameterType="map" resultType="map">
+	SELECT review_title,review_content, review_hit, review_date, review_upddate, review_deldate,
+		   review_star
+	FROM review_board 
+	</select>
+	
+	
+	<select id="reviewDetail" parameterType="map" resultType="map">
+  	select review_title, review_content, review_date, review_upddate, 
+         review_deldate, review_hit, review_star, 
+         rc_writer, rc_content, rc_date ,rc_upddate, rc_deldate, file_name
+    from REVIEW_COMMENT x LEFT JOIN REVIEW_BOARD y 
+                      ON x.review_bno = y.review_bno
+                      LEFT JOIN GYM_FILE z
+                      ON y.review_bno = z.review_bno
+		WHERE y.review_bno = #{review_bno}
+	</select>
+	
+	
+	<insert id="reviewInsert" parameterType="map">
+		INSERT INTO review_board
+		(review_bno, appt_no, review_title, review_content, review_date,
+		 review_hit, review_upddate, review_deldate, review_star)
+		values(review_board_seq.NEXTVAL, #{appt_no}, #{review_title}, #{review_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), #{review_hit}, 
+		#{review_upddate} ,#{review_deldate},#{review_star} 
+		)
+	</insert>
+
+	
+	<update id="reviewUpdate" parameterType="map">
+		UPDATE review_board 
+		SET
+		appt_no          = #{appt_no},
+		review_title     = #{review_title},
+		review_content   = #{review_content},
+		review_date      = 0,
+		review_hit       = #{review_hit},
+		review_upddate   = TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		review_deldate   = 0,
+		review_star    = #{review_star}
+		where review_bno = #{review_bno}
+	</update>
+	
+	<update id="reviewDelete" parameterType="map">
+		UPDATE review_board
+	 	SET 
+	 	review_date = 0,
+	 	review_upddate = 0,
+	 	review_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE review_bno = #{review_bno}
+	</update>
+	
+<!--                      review 댓글                                -->
+	
+	<insert id="rcInsert" parameterType="map">
+	INSERT INTO review_comment(
+	review_bno, comm_no, rc_writer, rc_content, rc_date, rc_upddate, rc_deldate)
+    values(#{review_bno}, (SELECT NVL((SELECT /*+index_desc(review_comment comm_no_fk)*/ comm_no
+                FROM review_comment
+                WHERE rownum = 1
+                AND review_bno = #{review_bno}),0)+1 comm_no
+                FROM dual), 
+              #{rc_writer}, #{rc_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0)
+	</insert>
+
+	<update id="rcUpdate" parameterType="map">
+		UPDATE review_comment 
+		SET
+		appt_no = #{appt_no},
+		rc_writer = #{rc_writer},
+		rc_content = #{rc_content},
+		rc_date = 0,
+		rc_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		rc_deldate= 0,
+		where review_bno = #{review_bno}
+		AND comm_no = #{comm_no}
+	</update>
+	
+	<update id="rcDelete" parameterType="map">
+		UPDATE review_comment
+	 	SET 
+	 	rc_date = 0,
+	 	rc_upddate = 0,
+	 	rc_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE review_bno = #{review_bno}
+		AND comm_no = #{comm_no}
+	</update>
+
+<!--                   리뷰 게시판                                  -->	
+
+</mapper>
+
+<!--관리자 게시판 
+-select(공지사항 리스트) 
+-insert,update,delete(gym_file 테이블/관리자만 가능하게 )
+
+qna 테이블
+-select (질문글 리스트) 
+-insert,update,delete (회원만 작성가능)
+qna코멘트 
+-select (댓글화면에 )
+- insert,update,delete (관리자) 
+
+수강후기 
+-select (후기 리스트)
+-insert,update,delete (예약이력이 있는 회원만 가능)
+수강코멘트 
+-select (후기화면)
+-insert,update,delete(관리자)
+-->
+
