@@ -20,6 +20,14 @@ public class BoardRestController {
 
 	@Autowired
 	private BoardLogic boardLogic = null;
+	@PostMapping("fileInsert")
+	public int fileInsert(@RequestParam Map<String, Object> pMap) {
+		logger.info("fileInsert 호출");
+		int result = 0;
+		result = boardLogic.fileInsert(pMap);
+		return result;
+	}
+	
 	@GetMapping("masterList")
 	public String masterList(@RequestParam Map<String, Object> pMap) {
 		List<Map<String, Object>> list = null;

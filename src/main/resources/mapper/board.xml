@@ -4,6 +4,13 @@
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.phoenix.board">
 <!--                   관리자 게시판                                  -->	
+		<insert id="fileInsert" parameterType="map">
+	 	INSERT INTO gym_file(file_no,qna_bno,review_bno,master_bno,
+	 						 board_type, file_path, file_name, file_type)
+	 	            values(gym_file_seq.NEXTVAL,#{qna_bno},#{review_bno},#{master_bno},
+	 	                   #{board_type}, #{file_path},#{file_name},#{file_type})
+	 	</insert>
+ 	
 	 <select id="masterList" parameterType="map" resultType="map">
 		SELECT mb.master_bno, mb.mem_no, mb.master_title, mb.master_content,
 		       mb.master_date, mb.master_hit, mb.master_upddate, mb.master_deldate, mb.master_type,
@@ -321,4 +328,11 @@
             ON qna.mem_no = mem.mem_no
             WHERE mem.mem_no = #{mem_no}
 	</select>
+	
+	<insert id="fileInsert" parameterType="map">
+ 	INSERT INTO gym_file(file_no,qna_bno,review_bno,master_bno,
+ 				board_type, file_path, file_name, file_type)
+ 	            values(#{file_no},#{qna_bno},#{review_bno},#{master_bno},
+ 	             #{board_type}, #{file_path},#{file_name},#{file_type})
+ 	</insert>
 </mapper>

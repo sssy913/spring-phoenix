@@ -404,5 +404,17 @@ public class BoardDao {
 		return result;
 	}
 
+	public int fileInsert(Map<String, Object> pMap) {
+		logger.info("Dao fileInsert 호출성공");
+		int result = 0;
+		
+		try {
+			result = sqlSession.insert(NAMESPACE + "fileInsert", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return result;
+	}
 
 }

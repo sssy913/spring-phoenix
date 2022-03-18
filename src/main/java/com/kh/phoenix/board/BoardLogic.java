@@ -199,4 +199,10 @@ public class BoardLogic {
 		list = boardDao.myBoardList(pMap);
 		return list;
 	}
+
+	public int fileInsert(Map<String, Object> pMap) {
+		int result = 0;
+		result = boardDao.fileInsert(pMap);
+		return result;
+	}
 }
