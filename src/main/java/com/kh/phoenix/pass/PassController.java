@@ -16,31 +16,94 @@ import com.google.gson.Gson;
 @RestController
 @RequestMapping("/pass/*")
 public class PassController {
-
 	Logger logger = LogManager.getLogger(PassController.class);
 
 	@Autowired
 	private PassLogic passLogic = null;
 
-	@GetMapping("passList")
-	public String ordersList(@RequestParam Map<String, Object> pMap) {
-		List<Map<String, Object>> passList = null;
-		logger.info("ordersList 호출");
-		passList = passLogic.passList(pMap);
+	@GetMapping("myPassList")
+	public String myPassList(@RequestParam Map<String, Object> pMap) {
+		List<Map<String, Object>> myPassList = null;
+		logger.info("myPassList 호출");
+		myPassList = passLogic.myPassList(pMap);
 		String result = null;
 		Gson g = new Gson();
-		result = g.toJson(passList);
+		result = g.toJson(myPassList);
 		return result;
 	}
-
-	@PostMapping("PassInsert")
+	
+	@PostMapping("passInsert")
 	public int passInsert(@RequestParam Map<String, Object> pMap) {
-
-		logger.info("ordersInsert 호출");
+		
+		logger.info("passInsert 호출");
 		int result = 0;
 		result = passLogic.passInsert(pMap);
+		
+		return result;
+	}
+	
+	@PostMapping("passUpdate")
+	public int passUpdate(@RequestParam Map<String, Object> pMap) {
+		
+		logger.info("passUpdate 호출");
+		int result = 0;
+		result = passLogic.passUpdate(pMap);
+		
+		return result;
+	}
+	
+	@GetMapping("appointmentList")
+	public String appointmentList(@RequestParam Map<String, Object> pMap) {
+		List<Map<String, Object>> appointmentList = null;
+		logger.info("appointmentList 호출");
+		appointmentList = passLogic.appointmentList(pMap);
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(appointmentList);
+		return result;
+	}
+	
+	@PostMapping("appointmentInsert")
+	public int appointmentInsert(@RequestParam Map<String, Object> pMap) {
+
+		logger.info("appointmentInsert 호출");
+		int result = 0;
+		result = passLogic.appointmentInsert(pMap);
 
 		return result;
 	}
+	
+	@PostMapping("appointmentCancel")
+	public int appointmentCancel(@RequestParam Map<String, Object> pMap) {
+		
+		logger.info("appointmentCancel 호출");
+		int result = 0;
+		result = passLogic.appointmentCancel(pMap);
+		
+		return result;
+	}
+	
+	@PostMapping("attendInsert")
+	public int attendInsert(@RequestParam Map<String, Object> pMap) {
+		
+		logger.info("attendInsert 호출");
+		int result = 0;
+		result = passLogic.attendInsert(pMap);
+		
+		return result;
+	}
+	
+	@GetMapping("attendList")
+	public String attendList(@RequestParam Map<String, Object> pMap) {
+		List<Map<String, Object>> attendList = null;
+		logger.info("attendList 호출");
+		attendList = passLogic.attendList(pMap);
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(attendList);
+		return result;
+	}
+
+	
 
 }

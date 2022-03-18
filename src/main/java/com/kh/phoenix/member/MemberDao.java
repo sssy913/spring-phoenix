@@ -11,18 +11,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class MemberDao {
-
 	Logger logger = LogManager.getLogger(MemberDao.class);
-	
 	private static final String NAMESPACE = "com.kh.phoenix.member.";
 	@Autowired
 	private SqlSession sqlSession = null;
-	
-	
 	public List<Map<String, Object>> memberList(Map<String, Object> pMap) {
-		
 		logger.info("memberList 호출성공");
-
 		List<Map<String,Object>> list = null;
 		try {
 			list = sqlSession.selectList(NAMESPACE+"memberList",pMap);
@@ -33,15 +27,59 @@ public class MemberDao {
 		return list;
 	}
 
-	
-	
-	public int memberInsert(Map<String, Object> pMap) {
-		
+	public List<Map<String, Object>> memberLogin(Map<String, Object> pMap) {
+		logger.info("memberLogin 호출 성공");
+		List<Map<String,Object>> member = null;
+		try {
+			member = sqlSession.selectList(NAMESPACE+"memberLogin",pMap);
+			logger.info(member);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return member;
+	}
+
+	public List<Map<String, Object>> memberDetail(Map<String, Object> pMap) {
+		logger.info("memberDetail 호출 성공");
+		List<Map<String,Object>> member = null;
+		try {
+			member = sqlSession.selectList(NAMESPACE+"memberDetail",pMap);
+			logger.info(member);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return member;
+	}
+
+	public int memberInsert(Map<String, Object> pMap) {	
 		logger.info("memberInsert 호출성공");
 		int result = -99;
-		
 		try {
 			result = sqlSession.insert(NAMESPACE+"memberInsert", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return result;
+	}
+
+	public int memberUpdate(Map<String, Object> pMap) {
+		logger.info("memberUpdate 호출성공");
+		int result = -99;
+		try {
+			result = sqlSession.update(NAMESPACE+"memberUpdate", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return result;
+	}
+
+	public int memberDelete(Map<String, Object> pMap) {
+		logger.info("memberDelete 호출성공");
+		int result = -99;
+		try {
+			result = sqlSession.update(NAMESPACE+"memberDelete", pMap);
 			logger.info(result);
 		} catch (Exception e) {
 			logger.info("Exection => "+ e.toString());

@@ -3,18 +3,71 @@
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.phoenix.orders">
-
-
+	<!-- 매장 상품 관련[PRODUCT] -->
+	<select id="productList" parameterType="map" resultType="map"> <!-- 매장 상품 전체 조회 -->
+		SELECT * FROM product
+		WHERE 1=1
+		<if test="prod_status != null">AND prod_status=#{prod_status}</if> <!-- 구매 가능한 상품 조회, 아직 테스트 못해봄 -->
+	</select>
 	
-	<select id="ordersList" parameterType="map">
-		SELECT
-			1 as "orders 성공"
-		FROM
-			DUAL
+	<insert id="productInsert" parameterType="map"> <!-- 매장 상품 등록 -->
+		INSERT INTO product(prod_no, prod_name, prod_price,prod_status)
+		VALUES(product_seq.NEXTVAL, #{prod_name}, #{prod_price}, #{prod_status})
+	</insert>
+	
+	 <update id="productUpdate" parameterType="map"> <!-- 매장 상품 수정 -->
+		UPDATE product
+			<set>
+				<if test="prod_name != null">prod_name=#{prod_name},</if>
+				<if test="prod_price != null">prod_price=#{prod_price},</if>
+				<if test="prod_status != null">prod_status=#{prod_status},</if>
+			</set>
+		WHERE prod_no = #{prod_no}
+	</update> 
+	
+	 <delete id="productDelete" parameterType="map"> <!-- 매장 상품 영구 삭제 -->
+ 		DELETE FROM product WHERE prod_no = #{prod_no}
+	 </delete>	
+	
+	<!-- 결제 관련[PAY] -->	
+	<select id="payList" parameterType="map" resultType="map"> <!-- 결제 내역 -->
+		SELECT prod_name, pay_price, pay_date, pay_status, order_no
+		FROM product x JOIN orders y
+	        	ON x.prod_no = y.prod_no
+	    	JOIN pay z
+	        	ON y.order_no = z.order_no
+			WHERE y.mem_no = #{mem_no} 
+	</select>
+	
+	<insert id="payInsert" parameterType="map" > <!-- 결제 정보 등록 -->
+		INSERT INTO pay(pay_no, order_no, pay_type, pay_price, pay_status, pay_date)
+        VALUES(pay_seq.NEXTVAL, #{order_no}, #{pay_type}, #{pay_price}, #{pay_status}, #{pay_date})
+	</insert> 
+	
+	
+	<!-- 주문 내역 관련[ORDERS] -->	
+	<select id="myOrderList" parameterType="map" resultType="map"> <!-- 회원 주문 내역 -->
+        SELECT  mem.mem_name, o.order_no, prod.prod_name, o.order_status, o.order_date, p.pay_price, p.pay_status
+        FROM orders o JOIN product prod
+            ON o.prod_no = prod.prod_no
+        JOIN pay p
+            ON o.order_no = p.order_no
+        JOIN member mem
+            ON o.mem_no = mem.mem_no
+        WHERE mem.mem_no = #{mem_no}
 	</select>
 
+	<insert id="ordersInsert" parameterType="map"><!-- 주문 내역 insert -->
+		INSERT INTO orders(
+			order_no, mem_no, prod_no, order_status, order_date
+		)
+		VALUES(orders_seq.NEXTVAL,#{mem_no},#{prod_no},0,
+			   TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
+	</insert>
 
+	<update id="ordersCancel" parameterType="map"><!-- 주문 내역 취소 -->
+		UPDATE orders SET order_status = 3
+		WHERE order_no = #{order_no}
+	</update> 
 
 </mapper>
-
-<!-- xml문서에서 > 크다라는 기호는 태그로 인식되므로 CDATA안에 작성하여 텍스트로 인식되도록 해주어야한다. -->
