@@ -56,11 +56,12 @@
 
 <!--                   1:1질문 게시판                                  -->	
 	<select id="qnaList" parameterType="map" resultType="map">
-	    SELECT x.qna_bno, x.mem_no, x.qna_title, x.qna_content,
-	           x.qna_date, x.qna_hit, x.qna_upddate, x.qna_deldate, x.qna_type,
-	           x.qna_secret, x.qna_status, y.file_no, y.file_name, y.file_type
-	    FROM qna_board x LEFT JOIN GYM_FILE y
-	    ON x.qna_bno = y.qna_bno
+        SELECT x.qna_bno, x.mem_no, x.qna_title, x.qna_content,
+               x.qna_date, x.qna_hit, x.qna_upddate, x.qna_deldate, x.qna_type,
+               x.qna_secret, x.qna_status, z.file_no, z.file_name, z.file_type,
+               (SELECT count(*) FROM qna_comment y WHERE y.qna_bno = x.qna_bno) replycnt
+        FROM qna_board x LEFT JOIN GYM_FILE z
+        ON x.qna_bno = z.qna_bno
 		<if test='qna_bno > 0'> <!-- 글 상세 조회 -->
 	    	WHERE x.qna_bno = #{qna_bno}
     	</if>    
@@ -138,9 +139,10 @@
 	<select id="reviewList" parameterType="map" resultType="map">
 		SELECT x.review_bno, x.appt_no, x.review_title, x.review_content,
 		       x.review_date, x.review_hit, x.review_upddate, x.review_deldate,
-		       x.review_star, y.file_no, y.file_name, y.file_type
-		FROM review_board x LEFT JOIN GYM_FILE y
-		    ON x.review_bno = y.review_bno
+		       x.review_star, z.file_no, z.file_name, z.file_type,
+		       (SELECT count(*) FROM review_comment y WHERE y.review_bno = x.review_bno) replycnt 
+		FROM review_board x LEFT JOIN GYM_FILE z
+		     ON x.review_bno = z.review_bno
 		<if test='review_bno > 0'> <!-- 글 상세 조회 -->
 	    	WHERE x.review_bno = #{review_bno}
     	</if>    
@@ -216,7 +218,8 @@
 	<select id="transBList" parameterType="map" resultType="map"> <!-- 양도 게시판 글 목록 -->
         SELECT tb.transb_bno, tb.pass_no, tb.transb_title, tb.transb_date, tb.transb_content,
                tb.transb_hit, tb.transb_upddate, tb.transb_deldate, tb.transb_status,
-               pd.prod_name, pd.prod_price
+               pd.prod_name, pd.prod_price,
+               (SELECT count(*) FROM transfer_comment tc WHERE tc.transb_bno = tb.transb_bno) replycnt
         FROM transfer_board tb
         JOIN pass p
             ON tb.pass_no = p.pass_no
@@ -267,7 +270,7 @@
 
 	 <insert id="tcInsert" parameterType = "map">  <!-- 양도 게시글에 댓글 입력 -->
  		INSERT INTO transfer_comment(transb_bno, comm_no, tc_writer, tc_content, tc_date, tc_upddate, tc_deldate)
- 			values(#{transb_bno}, (SELECT NVL((SELECT /*+index_desc(transfer_comment tc_comm_no)*/ comm_no
+ 			values(#{transb_bno}, (SELECT NVL((SELECT /*+index_desc(transfer_comment tb_comm_no)*/ comm_no
 				    FROM transfer_comment
 				    WHERE rownum = 1
 				    AND transb_bno = #{transb_bno}),0)+1 comm_no
@@ -329,10 +332,24 @@
             WHERE mem.mem_no = #{mem_no}
 	</select>
 	
-	<insert id="fileInsert" parameterType="map">
- 	INSERT INTO gym_file(file_no,qna_bno,review_bno,master_bno,
- 				board_type, file_path, file_name, file_type)
- 	            values(#{file_no},#{qna_bno},#{review_bno},#{master_bno},
- 	             #{board_type}, #{file_path},#{file_name},#{file_type})
- 	</insert>
+	<update id="transferHitUpdate" parameterType="map"> 
+		UPDATE transfer_board SET transb_hit = transb_hit+1
+		WHERE transb_bno = #{transb_bno}
+	</update> 
+	
+	<update id="masterHitUpdate" parameterType="map"> 
+		UPDATE master_board SET master_hit = master_hit+1
+		WHERE master_bno = #{master_bno}
+	</update> 
+	
+	<update id="reviewHitUpdate" parameterType="map"> 
+		UPDATE review_board SET review_hit = review_hit+1
+		WHERE review_bno = #{review_bno}
+	</update> 
+	
+	<update id="qnaHitUpdate" parameterType="map"> 
+		UPDATE qna_board SET qna_hit = qna_hit+1
+		WHERE qna_bno = #{qna_bno}
+	</update> 
+	
 </mapper>

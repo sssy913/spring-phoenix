@@ -205,4 +205,29 @@ public class BoardLogic {
 		result = boardDao.fileInsert(pMap);
 		return result;
 	}
+	
+	public int transferHitUpdate(Map<String, Object> pMap) {
+		int result = 0;
+		result = boardDao.transferHitUpdate(pMap);
+		return result;
+	}
+	
+	public int masterHitUpdate(Map<String, Object> pMap) {
+		int result = 0;
+		result = boardDao.masterHitUpdate(pMap);
+		return result;
+	}
+	
+	public int reviewHitUpdate(Map<String, Object> pMap) {
+		int result = 0;
+		result = boardDao.reviewHitUpdate(pMap);
+		return result;
+	}
+	
+	public int qnaHitUpdate(Map<String, Object> pMap) {
+		int result = 0;
+		result = boardDao.qnaHitUpdate(pMap);
+		return result;
+	}
+
 }

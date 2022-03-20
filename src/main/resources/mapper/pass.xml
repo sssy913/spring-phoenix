@@ -15,22 +15,6 @@
             ON o.prod_no = pr.prod_no
         WHERE p.mem_no = #{mem_no}
 	</select>
-
-	<insert id="passInsert" parameterType="map"> <!-- 이용권 insert -->
-		INSERT INTO pass(
-		<choose>
-		    <when test = "pass_cnt > 0">  <!-- pass_cnt가 0보다 크면 즉, 수강권일 경우 -->
-					pass_no, order_no, mem_no, pass_sday, pass_eday, pass_status, pass_cnt
-				)
-				VALUES(pass_seq.NEXTVAL,#{order_no},#{mem_no}, #{pass_sday}, #{pass_eday}, 0, #{pass_cnt})
-		    </when>
-		    <otherwise> <!-- 그 외 즉, 헬스장 이용권일 경우 -->
-					pass_no, order_no, mem_no, pass_sday, pass_eday, pass_status, pass_cnt
-				)
-				VALUES(pass_seq.NEXTVAL,#{order_no},#{mem_no}, #{pass_sday}, #{pass_eday}, 0, 0)
-		    </otherwise>
-	    </choose>
-	</insert>
 	
 	<update id="passUpdate" parameterType="map"> <!-- 이용권 업데이트(양도 등으로 인한 업데이트) -->
 		UPDATE pass 
@@ -71,7 +55,8 @@
 <!-- 출결 정보[Attend] -->
 	<insert id="attendInsert" parameterType="map"> <!-- 출결 등록 -->
 		INSERT INTO attend(attd_no, attd_date, pass_no)
-	        VALUES(#{attd_no},TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'),#{pass_no})
+	        VALUES((SELECT MAX(attd_no)+1 FROM attend),
+	        TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'),#{pass_no})
 	</insert>
 	
 	<select id="attendList" parameterType="map" resultType="map"> <!-- 출결 리스트 -->

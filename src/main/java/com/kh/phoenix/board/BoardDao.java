@@ -273,6 +273,7 @@ public class BoardDao {
 		try {
 			list = sqlSession.selectList(NAMESPACE + "transBList", pMap);
 			logger.info(list);
+			
 		} catch (Exception e) {
 			logger.info("Exection => " + e.toString());
 		}
@@ -410,6 +411,56 @@ public class BoardDao {
 		
 		try {
 			result = sqlSession.insert(NAMESPACE + "fileInsert", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return result;
+	}
+	
+	public int transferHitUpdate(Map<String, Object> pMap) {
+		logger.info("transferHitUpdate 호출성공");
+		int result = -99;
+		
+		try {
+			result = sqlSession.update(NAMESPACE + "transferHitUpdate", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return result;
+	}
+	public int masterHitUpdate(Map<String, Object> pMap) {
+		logger.info("masterHitUpdate 호출성공");
+		int result = -99;
+		
+		try {
+			result = sqlSession.update(NAMESPACE + "masterHitUpdate", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return result;
+	}
+	public int reviewHitUpdate(Map<String, Object> pMap) {
+		logger.info("reviewHitUpdate 호출성공");
+		int result = -99;
+		
+		try {
+			result = sqlSession.update(NAMESPACE + "reviewHitUpdate", pMap);
+			logger.info(result);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return result;
+	}
+	
+	public int qnaHitUpdate(Map<String, Object> pMap) {
+		logger.info("qnaHitUpdate 호출성공");
+		int result = -99;
+		
+		try {
+			result = sqlSession.update(NAMESPACE + "qnaHitUpdate", pMap);
 			logger.info(result);
 		} catch (Exception e) {
 			logger.info("Exection => " + e.toString());

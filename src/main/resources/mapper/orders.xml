@@ -4,10 +4,22 @@
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.phoenix.orders">
 	<!-- 매장 상품 관련[PRODUCT] -->
-	<select id="productList" parameterType="map" resultType="map"> <!-- 매장 상품 전체 조회 -->
+	<select id="productList" parameterType="map" resultType="map"> <!-- 매장 상품 전체 조회 || 판매 가능한 상품 조회 -->
 		SELECT * FROM product
-		WHERE 1=1
-		<if test="prod_status != null">AND prod_status=#{prod_status}</if> <!-- 구매 가능한 상품 조회, 아직 테스트 못해봄 -->
+		<where>	
+			<if test="prod_status != null">AND prod_status=#{prod_status}</if>
+		</where>
+	</select>
+	
+	<select id="prodList" parameterType="list" resultType="map">
+		SELECT
+			*
+		FROM
+			product
+		WHERE
+		<foreach collection="list" item="item" open="(" close=")" separator="or">
+			prod_no=#{item.prod_no}
+		</foreach>
 	</select>
 	
 	<insert id="productInsert" parameterType="map"> <!-- 매장 상품 등록 -->
@@ -29,23 +41,48 @@
  		DELETE FROM product WHERE prod_no = #{prod_no}
 	 </delete>	
 	
-	<!-- 결제 관련[PAY] -->	
-	<select id="payList" parameterType="map" resultType="map"> <!-- 결제 내역 -->
-		SELECT prod_name, pay_price, pay_date, pay_status, order_no
-		FROM product x JOIN orders y
-	        	ON x.prod_no = y.prod_no
-	    	JOIN pay z
-	        	ON y.order_no = z.order_no
-			WHERE y.mem_no = #{mem_no} 
+	<!-- 주문 내역 관련[ORDERS] -->	
+		<select id="ordersProdList" parameterType="map" resultType="map">
+		SELECT 
+		    mem_no, order_no, order_tid, a.prod_no, prod_price, prod_amount, prod_type
+		FROM
+		    orders a LEFT JOIN product b ON (a.prod_no=b.prod_no)
+		WHERE 
+		    order_tid = (SELECT order_tid FROM orders WHERE order_no = #{order_no})
+		    <!-- tid 가져오기 -->
 	</select>
 	
-	<insert id="payInsert" parameterType="map" > <!-- 결제 정보 등록 -->
-		INSERT INTO pay(pay_no, order_no, pay_type, pay_price, pay_status, pay_date)
-        VALUES(pay_seq.NEXTVAL, #{order_no}, #{pay_type}, #{pay_price}, #{pay_status}, #{pay_date})
-	</insert> 
 	
+	<select id="ordersList" parameterType="map" resultType="map">
+		SELECT
+			order_no, order_tid
+		FROM
+			orders
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<choose>
+				<when test="tid!=null">
+					order_tid = #{tid}
+				</when>
+				<when test="order_no!=null">
+					order_no = #{order_no}
+				</when>
+			</choose>
+		</trim>
+	</select>
 	
-	<!-- 주문 내역 관련[ORDERS] -->	
+	<insert id="ordersInsert" parameterType="list">
+		INSERT into orders(order_no, mem_no, prod_no, order_tid)
+		SELECT orders_seq.NEXTVAL, A.* FROM(
+		<foreach item="item" collection="list" separator="UNION ALL ">
+			select 
+				#{item.mem_no} as mem_no,
+				#{item.prod_no} as prod_no,
+				#{item.tid} as order_tid
+			from dual
+		</foreach>
+		) A
+	</insert>
+	
 	<select id="myOrderList" parameterType="map" resultType="map"> <!-- 회원 주문 내역 -->
         SELECT  mem.mem_name, o.order_no, prod.prod_name, o.order_status, o.order_date, p.pay_price, p.pay_status
         FROM orders o JOIN product prod
@@ -57,17 +94,85 @@
         WHERE mem.mem_no = #{mem_no}
 	</select>
 
-	<insert id="ordersInsert" parameterType="map"><!-- 주문 내역 insert -->
-		INSERT INTO orders(
-			order_no, mem_no, prod_no, order_status, order_date
-		)
-		VALUES(orders_seq.NEXTVAL,#{mem_no},#{prod_no},0,
-			   TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
-	</insert>
+	
+	<update id="ordersUpdate" parameterType="map">
+		UPDATE 
+			orders
+		SET
+			order_status = 1
+		WHERE
+			order_tid = #{tid}
+	</update>
 
 	<update id="ordersCancel" parameterType="map"><!-- 주문 내역 취소 -->
 		UPDATE orders SET order_status = 3
 		WHERE order_no = #{order_no}
 	</update> 
 
+	<!-- 결제 관련[PAY] -->	
+		<select id="payNo" resultType="int">
+		SELECT
+			pay_seq.NEXTVAL
+		FROM
+			DUAL
+	</select>
+	
+	<select id="payList" parameterType="map" resultType="map">
+		SELECT
+			pay_no, order_no, pay_price, pay_date
+		FROM
+			pay
+		WHERE
+			pay_no = #{pay_no}
+	</select>
+	
+	<insert id="payInsert" parameterType="list">
+		INSERT into pay(pay_no, order_no, pay_type, pay_price, pay_status)
+		SELECT A.* FROM(
+		<foreach item="item" collection="list" separator="UNION ALL ">
+			select 
+				#{item.pay_no} as pay_no,			
+				#{item.ORDER_NO} as order_no,
+				#{item.pay_TYPE} as pay_type,
+				#{item.PROD_PRICE} as pay_price,
+				1 as pay_status
+			from dual
+		</foreach>
+		) A
+	</insert>
+	
+	<select id="myPayList" parameterType="map" resultType="map"> <!-- 결제 내역 -->
+		SELECT prod_name, pay_price, pay_date, pay_status, order_no
+		FROM product x JOIN orders y
+	        	ON x.prod_no = y.prod_no
+	    	JOIN pay z
+	        	ON y.order_no = z.order_no
+			WHERE y.mem_no = #{mem_no} 
+	</select>
+	
+	<insert id="passInsert" parameterType="list">
+		INSERT into pass(pass_no, order_no, mem_no, pass_sday, pass_eday, pass_status, pass_type, pass_cnt)
+		SELECT pass_seq.NEXTVAL as pass_no, A.* FROM(
+		<foreach item="item" collection="list" separator="UNION ALL ">
+			select 
+				#{item.ORDER_NO} as order_no,
+				#{item.MEM_NO} as mem_no,
+				#{item.pass_sday} as pass_sday,
+				#{item.pass_eday} as pass_eday,
+				#{item.pass_status} as pass_status,
+				#{item.PROD_TYPE} as pass_type,				
+				<choose>
+					<when test = "item.PROD_TYPE==1">
+						#{item.PROD_AMOUNT} as pass_cnt
+					</when>
+					<otherwise>
+						0 as pass_cnt
+					</otherwise>
+				</choose>
+			from dual
+		</foreach>
+		) A
+	</insert>
+	
 </mapper>
+
