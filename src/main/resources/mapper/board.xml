@@ -3,90 +3,353 @@
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.kh.phoenix.board">
-
-	<select id="boardList" parameterType="map" resultType="map">
-		SELECT
-			1 as "board 성공"
-		FROM
-			DUAL
-	</select>
-	
-	
-<!-- 	<select id="boardList" parameterType="map" resultType="map">
-		Select bm.BM_NO, bm_title,bm_writer,bm_date, bm_hit, bs_file
-		,bm.bm_group,bm.bm_pos,bm_step,bm_pw,bm_content,bm_email
-		From
-		board_master_t bm left join board_sub_t bs
-		on bm.bm_no = bs.bm_no
-		<if test='bm_no>0'>
-			WHERE bm.bm_no = #{bm_no}
+<!--                   관리자 게시판                                  -->	
+		<insert id="fileInsert" parameterType="map">
+	 	INSERT INTO gym_file(file_no,qna_bno,review_bno,master_bno,
+	 						 board_type, file_path, file_name, file_type)
+	 	            values(gym_file_seq.NEXTVAL,#{qna_bno},#{review_bno},#{master_bno},
+	 	                   #{board_type}, #{file_path},#{file_name},#{file_type})
+	 	</insert>
+ 	
+	 <select id="masterList" parameterType="map" resultType="map">
+		SELECT mb.master_bno, mb.mem_no, mb.master_title, mb.master_content,
+		       mb.master_date, mb.master_hit, mb.master_upddate, mb.master_deldate, mb.master_type,
+		       gf.file_no, gf.file_name, gf.file_type
+		FROM master_board mb LEFT JOIN GYM_FILE gf
+		    ON mb.master_bno = gf.master_bno
+		<if test='master_bno > 0'> <!-- 글 상세 조회 -->
+	    	WHERE mb.master_bno = #{master_bno}
+    	</if>    
+    	<if test='cb_search != null and cb_search.equals("master_title")'>
+			WHERE mb.master_title like '%'||#{tb_search}||'%'
 		</if>
-		<if test='cb_search != null and cb_search.equals("bm_title")'>
-			WHERE bm.bm_title like '%'||#{tb_search}||'%'
+		<if test='cb_search != null and cb_search.equals("master_content")'>
+			WHERE mb.master_content like '%'||#{tb_search}||'%'
 		</if>
-		<if test='cb_search != null and cb_search.equals("bm_content")'>
-			WHERE bm.bm_content like '%'||#{tb_search}||'%'
-		</if>
-		<if test='cb_search != null and cb_search.equals("bm_writer")'>
-			WHERE bm.bm_writer like '%'||#{tb_search}||'%'
-		</if>
-
-		order by bm_group desc, bm_step asc
-	</select> -->
-
-	<select id= "getBmGroup" parameterType="int" resultType="int">
-		SELECT NVL( (SELECT/*+index_desc(board_master_t i_group)*/ bm_no
-		FROM board_master_t
-		WHERE rownum = 1 and bm_group > 0),0)+1 bm_no FROM dual
+	 ORDER BY master_bno desc
 	</select>
 
-	<select id= "getBmNo" parameterType="int" resultType="int">
-		SELECT NVL( (SELECT/*+index_desc(board_master_t BM_NO_PK)*/ bm_no
-			FROM board_master_t
-			WHERE rownum = 1),0)+1 bm_no FROM dual
-	</select>
-	
-	<select id="bmStepUpdate" parameterType="map">
-		update board_master_t
-		set bm_step = bm_step+1
-		where bm_group =
-		#{bm_group} <!--화면에서 가져온 bm_group -->
-		<![CDATA[And bm_step > #{bm_group}]]> <!--화면에서 가져온 bm_step -->
-	</select>
-
-	<update id="boardUpdate" parameterType="map">
-		UPDATE board_master_t 
-		SET
-		bm_title = #{bm_title},
-		bm_writer =  #{bm_writer},
-		bm_content = #{bm_content},
-		bm_date = TO_CHAR(sysdate, 'YYYY-MM-DD'),
-		bm_pw =  #{bm_pw},
-		bm_email = #{bm_email}
-		where bm_no = #{bm_no}
-
-	</update>
-	
-
-
-
-	<insert id="boardInsert" parameterType="map">
-		INSERT INTO board_master_t
-		(bm_no, bm_title, bm_writer, bm_content
-		,bm_date, bm_pw, bm_email, bm_group, bm_pos, bm_step)
-		values(#{bm_no}, #{bm_title}, #{bm_writer}, #{bm_content}
-		,TO_CHAR(sysdate, 'YYYY-MM-DD'), #{bm_pw}, #{bm_email}
-		,#{bm_group},#{bm_pos},#{bm_step}
+	<insert id="masterInsert" parameterType="map">
+		INSERT INTO master_board
+		(master_bno, mem_no, master_title, master_content, master_date,
+		 master_hit, master_upddate, master_deldate, master_type)
+		values(master_board_seq.NEXTVAL, #{mem_no}, #{master_title}, #{master_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0,0,0, #{master_type} 
 		)
 	</insert>
 	
+	<update id="masterUpdate" parameterType="map">
+		UPDATE master_board SET
+		master_title = #{master_title},
+		master_content = #{master_content},
+		master_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		master_type=#{master_type}
+		where master_bno = #{master_bno}
+	</update>
 	
-	<delete id="boardDelete" parameterType="map">
-		delete from board_master_t WHERE bm_no = #{bm_no}
-	</delete>
+	<update id="masterDelete" parameterType="map">
+		UPDATE master_board SET 
+	 		master_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE master_bno = #{master_bno}
+	</update>
 
 
+<!--                   1:1질문 게시판                                  -->	
+	<select id="qnaList" parameterType="map" resultType="map">
+        SELECT x.qna_bno, x.mem_no, x.qna_title, x.qna_content,
+               x.qna_date, x.qna_hit, x.qna_upddate, x.qna_deldate, x.qna_type,
+               x.qna_secret, x.qna_status, z.file_no, z.file_name, z.file_type,
+               (SELECT count(*) FROM qna_comment y WHERE y.qna_bno = x.qna_bno) replycnt
+        FROM qna_board x LEFT JOIN GYM_FILE z
+        ON x.qna_bno = z.qna_bno
+		<if test='qna_bno > 0'> <!-- 글 상세 조회 -->
+	    	WHERE x.qna_bno = #{qna_bno}
+    	</if>    
+    	<if test='cb_search != null and cb_search.equals("qna_title")'>
+			WHERE x.qna_title like '%'||#{tb_search}||'%'
+		</if>
+		<if test='cb_search != null and cb_search.equals("qna_content")'>
+			WHERE x.qna_content like '%'||#{tb_search}||'%'
+		</if>
+	 	ORDER BY qna_bno desc
+	</select>
+	
+	
+	<insert id="qnaInsert" parameterType="map">
+		INSERT INTO qna_board
+		(qna_bno, mem_no, qna_title, qna_content, qna_date,
+		 qna_hit, qna_upddate, qna_deldate, qna_type, qna_secret, qna_status)
+		values(qna_board_seq.NEXTVAL, #{mem_no}, #{qna_title}, #{qna_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0,0,0, #{qna_type}, #{qna_secret}, 0
+		)
+	</insert>
+	
+	<update id="qnaUpdate" parameterType="map">
+		UPDATE qna_board SET
+		qna_title = #{qna_title},
+		qna_content = #{qna_content},
+		qna_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		qna_type=#{qna_type},
+		qna_secret=#{qna_secret}
+		where qna_bno = #{qna_bno}
+	</update>
+	
+	<update id="qnaDelete" parameterType="map">
+		UPDATE qna_board SET 
+	 		qna_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE qna_bno = #{qna_bno}
+	</update>
+	
+<!--                      1:1 댓글                                   -->
+	<select id="qcList" parameterType="map" resultType="map"> 
+        SELECT x.qna_bno, x.comm_no, x.qc_writer, x.qc_content, x.qc_date, x.qc_upddate, x.qc_deldate
+        FROM qna_comment x JOIN qna_board y
+            ON x.qna_bno = y.qna_bno
+        WHERE x.qna_bno = #{qna_bno}
+	</select>
+	
+	<insert id="qcInsert" parameterType="map">
+		INSERT INTO qna_comment
+		(qna_bno, comm_no, qc_writer, qc_content, qc_date, qc_upddate, qc_deldate)
+		values(#{qna_bno}, (SELECT NVL((SELECT /*+index_desc(qna_comment qb_comm_no)*/ comm_no
+                FROM qna_comment
+                WHERE rownum = 1
+                AND qna_bno = #{qna_bno}),0)+1 comm_no
+                FROM dual), #{qc_writer}, #{qc_content} ,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0, 0
+		)
+	</insert>
 
+	<update id="qcUpdate" parameterType="map">
+		UPDATE qna_comment SET
+		qc_content = #{qc_content},
+		qc_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss')
+		WHERE qna_bno = #{qna_bno}
+		AND comm_no = #{comm_no}
+	</update>
+	
+	<update id="qcDelete" parameterType="map">
+		UPDATE qna_comment SET 
+	 		qc_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE qna_bno = #{qna_bno}
+		AND comm_no = #{comm_no}
+	</update>
+
+<!--                   리뷰 게시판                                  -->	
+
+	<select id="reviewList" parameterType="map" resultType="map">
+		SELECT x.review_bno, x.appt_no, x.review_title, x.review_content,
+		       x.review_date, x.review_hit, x.review_upddate, x.review_deldate,
+		       x.review_star, z.file_no, z.file_name, z.file_type,
+		       (SELECT count(*) FROM review_comment y WHERE y.review_bno = x.review_bno) replycnt 
+		FROM review_board x LEFT JOIN GYM_FILE z
+		     ON x.review_bno = z.review_bno
+		<if test='review_bno > 0'> <!-- 글 상세 조회 -->
+	    	WHERE x.review_bno = #{review_bno}
+    	</if>    
+    	<if test='cb_search != null and cb_search.equals("review_title")'>
+			WHERE x.review_title like '%'||#{tb_search}||'%'
+		</if>
+		<if test='cb_search != null and cb_search.equals("review_content")'>
+			WHERE x.review_content like '%'||#{tb_search}||'%'
+		</if>
+	 ORDER BY master_bno desc
+	</select>
+
+	<insert id="reviewInsert" parameterType="map">
+		INSERT INTO review_board
+		(review_bno, appt_no, review_title, review_content, review_date,
+		 review_hit, review_upddate, review_deldate, review_star)
+		values(review_board_seq.NEXTVAL, #{appt_no}, #{review_title}, #{review_content}
+		,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0, 0, 0, #{review_star}
+		)
+	</insert>
+	
+	<update id="reviewUpdate" parameterType="map">
+		UPDATE review_board SET
+		appt_no          = #{appt_no},
+		review_title     = #{review_title},
+		review_content   = #{review_content},
+		review_upddate   = TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss'),
+		review_star    = #{review_star}
+		where review_bno = #{review_bno}
+	</update>
+	
+	<update id="reviewDelete" parameterType="map">
+		UPDATE review_board SET 
+	 		review_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE review_bno = #{review_bno}
+	</update>
+	
+<!--                      review 댓글                                -->
+	<select id="rcList" parameterType="map" resultType="map"> 
+        SELECT x.review_bno, x.comm_no, x.rc_writer, x.rc_content, x.rc_date, x.rc_upddate, x.rc_deldate
+        FROM review_comment x JOIN review_board y
+            ON x.review_bno = y.review_bno
+        WHERE x.review_bno = #{review_bno}
+	</select>
+	
+	<insert id="rcInsert" parameterType="map">
+	INSERT INTO review_comment(
+	review_bno, comm_no, rc_writer, rc_content, rc_date, rc_upddate, rc_deldate)
+    values(#{review_bno}, (SELECT NVL((SELECT /*+index_desc(review_comment rb_comm_no)*/ comm_no
+                FROM review_comment
+                WHERE rownum = 1
+                AND review_bno = #{review_bno}),0)+1 comm_no
+                FROM dual), 
+              #{rc_writer}, #{rc_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0)
+	</insert>
+
+	<update id="rcUpdate" parameterType="map">
+		UPDATE review_comment SET
+			rc_content = #{rc_content},
+			rc_upddate= TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss')
+		WHERE review_bno = #{review_bno}
+		AND comm_no = #{comm_no}
+	</update>
+	
+	<update id="rcDelete" parameterType="map">
+		UPDATE review_comment SET 
+	 		rc_deldate= TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss') 
+		WHERE review_bno = #{review_bno}
+		AND comm_no = #{comm_no}
+	</update>
+
+<!--                      양도 게시판                                -->
+	<select id="transBList" parameterType="map" resultType="map"> <!-- 양도 게시판 글 목록 -->
+        SELECT tb.transb_bno, tb.pass_no, tb.transb_title, tb.transb_date, tb.transb_content,
+               tb.transb_hit, tb.transb_upddate, tb.transb_deldate, tb.transb_status,
+               pd.prod_name, pd.prod_price,
+               (SELECT count(*) FROM transfer_comment tc WHERE tc.transb_bno = tb.transb_bno) replycnt
+        FROM transfer_board tb
+        JOIN pass p
+            ON tb.pass_no = p.pass_no
+        JOIN orders o
+            ON p.order_no = o.order_no
+        JOIN product pd
+            ON o.prod_no = pd.prod_no
+		<if test='transb_bno != null and transb_bno > 0'> <!-- 글 상세 조회 -->
+	    	WHERE tb.transb_bno = #{transb_bno}
+    	</if>
+		<if test='cb_search != null and cb_search.equals("transb_title")'> <!-- 제목 검색 -->
+			WHERE tb.transb_title like '%'||#{tb_search}||'%'
+		</if>
+		<if test='cb_search != null and cb_search.equals("transb_content")'> <!-- 내용 검색 -->
+			WHERE tb.transb_content like '%'||#{tb_search}||'%'
+		</if>
+		ORDER BY transb_bno desc
+	</select>
+	
+	 <insert id="transBInsert" parameterType = "map"> <!-- 양도 게시판 글 작성 -->
+ 		INSERT INTO transfer_board(transb_bno, pass_no, transb_title, transb_content, transb_date, transb_hit, transb_upddate, transb_deldate, transb_status)
+ 			values(transfer_board_seq.NEXTVAL, #{pass_no}, #{transb_title}, #{transb_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0, 0, 0)
+	 </insert>
+	
+	<update id="transBUpdate" parameterType="map"> <!-- 양도 게시판 글 수정 -->
+		UPDATE transfer_board SET
+			pass_no = #{pass_no},
+			transb_title = #{transb_title},
+			transb_content = #{transb_content},
+			transb_upddate = TO_CHAR(SYSDATE,'yyyy-mm-dd hh24:mm:ss')
+		WHERE transb_bno = #{transb_bno}
+	</update> 
+	
+	<update id="transBDelete" parameterType="map">  <!-- 양도 게시판 글 삭제 -->
+		UPDATE transfer_board SET transb_deldate = TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS')
+		WHERE transb_bno = #{transb_bno}
+	</update> 
+	
+<!--                      양도 게시판 댓글                               -->	
+	<select id="tcList" parameterType="map" resultType="map"> 
+        SELECT x.transb_bno, x.comm_no, z.mem_name, x.tc_content, x.tc_date, x.tc_upddate, x.tc_deldate
+        FROM transfer_comment x JOIN transfer_board y
+            ON x.transb_bno = y.transb_bno
+                JOIN member z
+            ON x.tc_writer = z.mem_no
+        WHERE x.transb_bno = #{transb_bno}
+	</select>
+
+	 <insert id="tcInsert" parameterType = "map">  <!-- 양도 게시글에 댓글 입력 -->
+ 		INSERT INTO transfer_comment(transb_bno, comm_no, tc_writer, tc_content, tc_date, tc_upddate, tc_deldate)
+ 			values(#{transb_bno}, (SELECT NVL((SELECT /*+index_desc(transfer_comment tb_comm_no)*/ comm_no
+				    FROM transfer_comment
+				    WHERE rownum = 1
+				    AND transb_bno = #{transb_bno}),0)+1 comm_no
+				    FROM dual), 
+				  #{tc_writer}, #{tc_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0)
+	 </insert>
+	 
+	 <update id="tcUpdate" parameterType="map">  <!-- 양도 게시글 댓글 수정 -->
+		UPDATE transfer_comment SET
+			tc_content = #{tc_content},
+			tc_date = TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS')
+		WHERE transb_bno = #{transb_bno}
+		AND comm_no = #{comm_no}
+	</update> 
+	
+	<update id="tcDelete" parameterType="map">  <!-- 양도 게시글 댓글 삭제 -->
+		UPDATE transfer_comment SET tc_deldate = TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS')
+		WHERE transb_bno = #{transb_bno}
+		AND comm_no = #{comm_no}
+	</update> 
+	
+	<select id="commentersList" parameterType="map" resultType="map">  <!-- 댓글 작성자 조회 -> 양도하기 -->
+		SELECT m.mem_name
+		FROM transfer_comment tc
+		INNER JOIN member m 
+		    ON tc.tc_writer = m.mem_no
+		INNER JOIN transfer_board tb
+		    ON tc.transb_bno = tb.transb_bno
+		WHERE tc.transb_bno = #{transb_bno}
+	</select>
+	
+	 <insert id="transferInsert" parameterType = "map">  <!-- 양도 시 이력 남기기 -->
+ 		INSERT INTO transfer(trans_no, pass_no, transb_bno, trans_date)
+ 			values(transfer_seq.NEXTVAL, #{pass_no}, #{transb_bno}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
+	 </insert>
+	 
+	 <select id="myBoardList" parameterType="map" resultType="map"> <!-- 내가 쓴 글 조회 -->
+            SELECT review_title title, mem_name, review_date, (SELECT '리뷰게시판' FROM dual) board_type
+            FROM review_board rb
+            JOIN appointment appt
+                ON rb.appt_no = appt.appt_no
+            JOIN pass p
+                ON appt.pass_no = p.pass_no
+            JOIN member mem
+                ON p.mem_no = mem.mem_no
+            WHERE mem.mem_no = #{mem_no}
+            UNION ALL
+            SELECT tb.transb_title title, mem.mem_name, transb_date, (SELECT '양도게시판' FROM dual) board_type
+            FROM transfer_board tb
+            JOIN pass p 
+                ON tb.pass_no = p.pass_no
+            JOIN member mem
+                ON p.mem_no = mem.mem_no
+            WHERE mem.mem_no = #{mem_no}
+            UNION ALL
+            SELECT qna.qna_title title, mem.mem_name, qna_date, (SELECT 'Q&amp;A게시판' FROM dual) board_type
+            FROM qna_board qna LEFT JOIN member mem
+            ON qna.mem_no = mem.mem_no
+            WHERE mem.mem_no = #{mem_no}
+	</select>
+	
+	<update id="transferHitUpdate" parameterType="map"> 
+		UPDATE transfer_board SET transb_hit = transb_hit+1
+		WHERE transb_bno = #{transb_bno}
+	</update> 
+	
+	<update id="masterHitUpdate" parameterType="map"> 
+		UPDATE master_board SET master_hit = master_hit+1
+		WHERE master_bno = #{master_bno}
+	</update> 
+	
+	<update id="reviewHitUpdate" parameterType="map"> 
+		UPDATE review_board SET review_hit = review_hit+1
+		WHERE review_bno = #{review_bno}
+	</update> 
+	
+	<update id="qnaHitUpdate" parameterType="map"> 
+		UPDATE qna_board SET qna_hit = qna_hit+1
+		WHERE qna_bno = #{qna_bno}
+	</update> 
+	
 </mapper>
-
-<!-- xml문서에서 > 크다라는 기호는 태그로 인식되므로 CDATA안에 작성하여 텍스트로 인식되도록 해주어야한다. -->

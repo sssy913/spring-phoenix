@@ -9,33 +9,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MemberLogic {
-	
-	Logger logger = LogManager.getLogger(MemberLogic.class);
-	
+public class MemberLogic {	
+	Logger logger = LogManager.getLogger(MemberLogic.class);	
 	@Autowired
 	private MemberDao memberDao = null;
 	
-
-
-	public List<Map<String, Object>> memberList(Map<String, Object> pMap) {
-		
+	public List<Map<String, Object>> memberList(Map<String, Object> pMap) {		
 		List<Map<String, Object>> list = null;
 		list = memberDao.memberList(pMap);
-		return list;
-		
+		return list;		
 	}
 
-
-
-	public int memberInsert(Map<String, Object> pMap) {
-		
+	public int memberInsert(Map<String, Object> pMap) {		
 		int result = 0;
 		result = memberDao.memberInsert(pMap);
-		return result;
-		
+		return result;		
 	}
 
-	
+	public List<Map<String, Object>> memberLogin(Map<String, Object> pMap) {
+		List<Map<String, Object>> member = null;
+		member = memberDao.memberLogin(pMap);
+		return member;
+	}
 
+	public List<Map<String, Object>> memberDetail(Map<String, Object> pMap) {
+		List<Map<String, Object>> member = null;
+		member = memberDao.memberDetail(pMap);
+		return member;
+	}
+
+	public int memberUpdate(Map<String, Object> pMap) {
+		int result = 0;
+		result = memberDao.memberUpdate(pMap);
+		return result;
+	}
+
+	public int memberDelete(Map<String, Object> pMap) {
+		int result = 0;
+		result = memberDao.memberDelete(pMap);
+		return result;
+	}	
 }
