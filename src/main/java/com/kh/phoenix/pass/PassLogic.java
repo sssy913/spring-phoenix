@@ -66,5 +66,11 @@ public class PassLogic {
 		return list;
 	}
 
+	public List<Map<String, Object>> searchPass(Map<String, Object> pMap) {
+		List<Map<String, Object>> list = null;
+		list = passDao.searchPass(pMap);
+		return list;
+	}
+
 
 }
