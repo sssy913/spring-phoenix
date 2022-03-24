@@ -104,6 +104,16 @@ public class PassController {
 		return result;
 	}
 
+	@PostMapping("searchPass")
+	public String searchPass(@RequestParam Map<String, Object> pMap) {
+		List<Map<String, Object>> list = null;
+		logger.info("attendList 호출");
+		list = passLogic.searchPass(pMap);
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(list);
+		return result;
+	}
 	
 
 }

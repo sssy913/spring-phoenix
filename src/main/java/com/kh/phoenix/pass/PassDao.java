@@ -104,7 +104,7 @@ public class PassDao {
 		
 		try {
 			result = sqlSession.insert(NAMESPACE+"attendInsert", pMap);
-			logger.info(result);
+			logger.info("result ===> " + result);
 		} catch (Exception e) {
 			logger.info("Exection => "+ e.toString());
 		}
@@ -117,6 +117,19 @@ public class PassDao {
 		List<Map<String,Object>> list = null;
 		try {
 			list = sqlSession.selectList(NAMESPACE+"attendList",pMap);
+			logger.info(list);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return list;
+	}
+
+	public List<Map<String, Object>> searchPass(Map<String, Object> pMap) {
+		logger.info("searchPass 호출성공");
+
+		List<Map<String,Object>> list = null;
+		try {
+			list = sqlSession.selectList(NAMESPACE+"searchPass",pMap);
 			logger.info(list);
 		} catch (Exception e) {
 			logger.info("Exection => "+ e.toString());

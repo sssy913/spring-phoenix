@@ -468,4 +468,16 @@ public class BoardDao {
 		return result;
 	}
 
+	public List<Map<String, Object>> rcCommNo(Map<String, Object> pMap) {
+		logger.info("commentersList 호출성공");
+		List<Map<String, Object>> list = null;
+		try {
+			list = sqlSession.selectList(NAMESPACE + "commentersList", pMap);
+			logger.info(list);
+		} catch (Exception e) {
+			logger.info("Exection => " + e.toString());
+		}
+		return list;
+	}
+
 }

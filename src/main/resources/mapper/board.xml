@@ -108,6 +108,7 @@
         WHERE x.qna_bno = #{qna_bno}
 	</select>
 	
+<!-- 	
 	<insert id="qcInsert" parameterType="map">
 		INSERT INTO qna_comment
 		(qna_bno, comm_no, qc_writer, qc_content, qc_date, qc_upddate, qc_deldate)
@@ -115,9 +116,14 @@
                 FROM qna_comment
                 WHERE rownum = 1
                 AND qna_bno = #{qna_bno}),0)+1 comm_no
-                FROM dual), #{qc_writer}, #{qc_content} ,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0, 0
-		)
-	</insert>
+                FROM dual), #{qc_writer}, #{qc_content} ,TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'), 0, 0)
+	</insert> 
+-->
+	
+	<insert id ="qcInsert" parameterType="map" statementType="CALLABLE"> <!-- 프로시저 -->
+  			{call qna_comm_no(
+  					#{qna_bno}, #{qc_writer}, #{qc_content})}
+  	</insert>
 
 	<update id="qcUpdate" parameterType="map">
 		UPDATE qna_comment SET
@@ -188,7 +194,8 @@
         WHERE x.review_bno = #{review_bno}
 	</select>
 	
-	<insert id="rcInsert" parameterType="map">
+<!--
+ 	<insert id="rcInsert" parameterType="map">
 	INSERT INTO review_comment(
 	review_bno, comm_no, rc_writer, rc_content, rc_date, rc_upddate, rc_deldate)
     values(#{review_bno}, (SELECT NVL((SELECT /*+index_desc(review_comment rb_comm_no)*/ comm_no
@@ -197,7 +204,13 @@
                 AND review_bno = #{review_bno}),0)+1 comm_no
                 FROM dual), 
               #{rc_writer}, #{rc_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0)
-	</insert>
+	</insert> 
+-->
+	<insert id ="rcInsert" parameterType="map" statementType="CALLABLE"> <!-- 프로시저 -->
+  			{call review_comm_no(
+  					#{review_bno}, #{rc_writer}, #{rc_content})}
+  	</insert>
+	
 
 	<update id="rcUpdate" parameterType="map">
 		UPDATE review_comment SET
@@ -268,7 +281,8 @@
         WHERE x.transb_bno = #{transb_bno}
 	</select>
 
-	 <insert id="tcInsert" parameterType = "map">  <!-- 양도 게시글에 댓글 입력 -->
+<!--
+	 <insert id="tcInsert" parameterType = "map"> 
  		INSERT INTO transfer_comment(transb_bno, comm_no, tc_writer, tc_content, tc_date, tc_upddate, tc_deldate)
  			values(#{transb_bno}, (SELECT NVL((SELECT /*+index_desc(transfer_comment tb_comm_no)*/ comm_no
 				    FROM transfer_comment
@@ -277,6 +291,11 @@
 				    FROM dual), 
 				  #{tc_writer}, #{tc_content}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'), 0, 0)
 	 </insert>
+-->
+	<insert id ="tcInsert" parameterType="map" statementType="CALLABLE"> <!-- 프로시저 -->
+  			{call transfer_comm_no(
+  					#{transb_bno}, #{tc_writer}, #{tc_content})}
+  	</insert>
 	 
 	 <update id="tcUpdate" parameterType="map">  <!-- 양도 게시글 댓글 수정 -->
 		UPDATE transfer_comment SET
@@ -303,7 +322,7 @@
 	</select>
 	
 	 <insert id="transferInsert" parameterType = "map">  <!-- 양도 시 이력 남기기 -->
- 		INSERT INTO transfer(trans_no, pass_no, transb_bno, trans_date)
+ 		INSERT INTO transfer(transfer_no, pass_no, transb_bno, trans_date)
  			values(transfer_seq.NEXTVAL, #{pass_no}, #{transb_bno}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
 	 </insert>
 	 
@@ -351,5 +370,6 @@
 		UPDATE qna_board SET qna_hit = qna_hit+1
 		WHERE qna_bno = #{qna_bno}
 	</update> 
+	
 	
 </mapper>
