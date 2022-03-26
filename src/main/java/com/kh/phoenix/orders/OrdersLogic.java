@@ -16,12 +16,14 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-@Service
 @PropertySource("classpath:/application.properties")
+@Service
 public class OrdersLogic {
 	Logger logger = LogManager.getLogger(OrdersLogic.class);	
 	@Autowired
@@ -224,6 +226,12 @@ public class OrdersLogic {
 	public int payNo() {
 		return ordersDao.payNo();
 	}
+	
+	public Map<String, Object> getTransInfo(Map<String, Object> pMap) {
+		Map<String, Object> map = null;
+		map = ordersDao.getTransInfo(pMap);
+		return map;
+	}
 
 
 	public int payInsert(List<Map<String, Object>> ordersProdList) {
@@ -247,5 +255,18 @@ public class OrdersLogic {
 		return ordersDao.payList(map);
 	}
 		
-	
+	@Transactional
+	public int transferInsert(Map<String, Object> pMap) {
+		int result = 0;
+		result = ordersDao.transferInsert(pMap);
+		result = ordersDao.endOfPass(pMap);
+		return result;
+	}
+
+	public int endOfPass(Map<String, Object> map) {
+		int result = 0;
+		result = ordersDao.endOfPass(map);
+		return result;
+	}
+
 }

@@ -12,10 +12,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BoardDao {
 	Logger logger = LogManager.getLogger(BoardDao.class);
-
 	private static final String NAMESPACE = "com.kh.phoenix.board.";
 	@Autowired
 	private SqlSession sqlSession = null;
+	
 	public List<Map<String, Object>> masterList(Map<String, Object> pMap) {
 		logger.info("masterList 호출성공");
 
@@ -26,6 +26,13 @@ public class BoardDao {
 		} catch (Exception e) {
 			logger.info("Exection => " + e.toString());
 		}
+		return list;
+	}
+	
+	public List<Map<String, Object>> masterDetail(Map<String, Object> pMap) {
+		logger.info("Dao masterDetail 호출성공");
+		List<Map<String, Object>> list = null;
+		list = sqlSession.selectList(NAMESPACE + "masterDetail", pMap);
 		return list;
 	}
 	
@@ -76,6 +83,13 @@ public class BoardDao {
 		} catch (Exception e) {
 			logger.info("Exection => " + e.toString());
 		}
+		return list;
+	}
+	
+	public List<Map<String, Object>> qnaDetail(Map<String, Object> pMap) {
+		logger.info("Dao qnaDetail 호출성공");
+		List<Map<String, Object>> list = null;
+		list = sqlSession.selectList(NAMESPACE + "qnaDetail", pMap);
 		return list;
 	}
 	
@@ -177,6 +191,13 @@ public class BoardDao {
 			logger.info("Exection => " + e.toString());
 		}
 		return list;
+	}
+	
+	public List<Map<String, Object>> reviewDetail(Map<String, Object> pMap) {
+		logger.info("Dao reviewDetail 호출성공");
+		List<Map<String, Object>> list = null;
+		list = sqlSession.selectList(NAMESPACE + "reviewDetail", pMap);
+		return list;	
 	}
 	
 	public int reviewInsert(Map<String, Object> pMap) {
@@ -304,6 +325,13 @@ public class BoardDao {
 		}
 		return result;
 	}
+	
+	public List<Map<String, Object>> transBDetail(Map<String, Object> pMap) {
+		logger.info("Dao transBDetail 호출성공");
+		List<Map<String, Object>> list = null;
+		list = sqlSession.selectList(NAMESPACE + "transBDetail", pMap);
+		return list;
+	}
 
 	public int transBUpdate(Map<String, Object> pMap) {
 		logger.info("transBUpdate 호출성공");
@@ -418,53 +446,36 @@ public class BoardDao {
 		return result;
 	}
 	
-	public int transferHitUpdate(Map<String, Object> pMap) {
-		logger.info("transferHitUpdate 호출성공");
+	public int transBHitUpdate(int transB_bno) {
+		logger.info("transBHitUpdate 호출성공");
 		int result = -99;
-		
-		try {
-			result = sqlSession.update(NAMESPACE + "transferHitUpdate", pMap);
-			logger.info(result);
-		} catch (Exception e) {
-			logger.info("Exection => " + e.toString());
-		}
-		return result;
-	}
-	public int masterHitUpdate(Map<String, Object> pMap) {
-		logger.info("masterHitUpdate 호출성공");
-		int result = -99;
-		
-		try {
-			result = sqlSession.update(NAMESPACE + "masterHitUpdate", pMap);
-			logger.info(result);
-		} catch (Exception e) {
-			logger.info("Exection => " + e.toString());
-		}
-		return result;
-	}
-	public int reviewHitUpdate(Map<String, Object> pMap) {
-		logger.info("reviewHitUpdate 호출성공");
-		int result = -99;
-		
-		try {
-			result = sqlSession.update(NAMESPACE + "reviewHitUpdate", pMap);
-			logger.info(result);
-		} catch (Exception e) {
-			logger.info("Exection => " + e.toString());
-		}
+		result = sqlSession.update(NAMESPACE + "transBHitUpdate", transB_bno);
+		logger.info(result);
 		return result;
 	}
 	
-	public int qnaHitUpdate(Map<String, Object> pMap) {
+
+	public int masterHitUpdate(int master_bno)  throws Exception {
+		logger.info("masterHitUpdate 호출성공");
+		int result = -99;
+		result = sqlSession.update(NAMESPACE + "masterHitUpdate", master_bno);
+		logger.info(result);
+		return result;
+	}
+	
+	public int reviewHitUpdate(int review_bno) {
+		logger.info("reviewHitUpdate 호출성공");
+		int result = -99;
+		result = sqlSession.update(NAMESPACE + "reviewHitUpdate", review_bno);
+		logger.info(result);
+		return result;
+	}
+	
+	public int qnaHitUpdate(int qna_bno) {
 		logger.info("qnaHitUpdate 호출성공");
 		int result = -99;
-		
-		try {
-			result = sqlSession.update(NAMESPACE + "qnaHitUpdate", pMap);
-			logger.info(result);
-		} catch (Exception e) {
-			logger.info("Exection => " + e.toString());
-		}
+		result = sqlSession.update(NAMESPACE + "qnaHitUpdate", qna_bno);
+		logger.info(result);
 		return result;
 	}
 

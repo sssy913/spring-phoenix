@@ -74,7 +74,7 @@
 	</insert> -->
 	
 	<!-- 프로시저 사용 -->
-	<insert id ="attendInsert" parameterType="map" statementType="CALLABLE">
+	<insert id ="attendInsert" parameterType="Int" statementType="CALLABLE">
   			{call attend_proc(
   					#{pass_no})}
   	</insert>

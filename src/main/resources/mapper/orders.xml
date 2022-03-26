@@ -174,5 +174,21 @@
 		) A
 	</insert>
 	
+	<select id="getTransInfo" parameterType = "map" resultType="map">  <!-- 양도 할 때 필요한 정보 가져오기 -->
+ 		SELECT pass_eday, pass_cnt, pass_type FROM pass
+ 		WHERE pass_no = #{pass_no}
+	 </select>
+	
+	<insert id="transferInsert" parameterType = "map">  <!-- 양도 시 이력 남기기 -->
+ 		INSERT INTO transfer(transfer_no, pass_no, transb_bno, trans_date)
+ 			values(transfer_seq.NEXTVAL, #{pass_no}, #{transb_bno}, TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
+	 </insert>
+	 
+	 <update id="endOfPass" parameterType="map"> <!-- 기존 이용권 상태 변경 -->
+		UPDATE pass SET
+			pass_status=2
+		WHERE pass_no = #{pass_no}
+	</update> 
+	
 </mapper>
 

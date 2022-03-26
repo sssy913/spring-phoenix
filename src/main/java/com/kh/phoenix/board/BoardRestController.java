@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
+import com.kh.phoenix.orders.OrdersDao;
 
 @RestController
 @RequestMapping("/board/*")
@@ -21,6 +22,7 @@ public class BoardRestController {
 
 	@Autowired
 	private BoardLogic boardLogic = null;
+	
 	@PostMapping("fileInsert")
 	public int fileInsert(@RequestParam Map<String, Object> pMap) {
 		logger.info("fileInsert 호출");
@@ -34,15 +36,22 @@ public class BoardRestController {
 		List<Map<String, Object>> list = null;
 		logger.info("masterList 호출");
 		list = boardLogic.masterList(pMap);
-
-		if(list!=null && pMap.get("master_bno")!=null) { //조회수 증가
-			boardLogic.masterHitUpdate(pMap);
-		}
 		String result = null;
 		Gson g = new Gson();
 		result = g.toJson(list);
 		return result;
 	}
+	
+	@GetMapping("masterDetail")
+	public String masterDetail(@RequestParam Map<String,Object> pMap, int master_bno) throws Exception {
+		List<Map<String,Object>> masterDetail = null;
+		logger.info("boardDetail 호출");
+		masterDetail = boardLogic.masterDetail(pMap, master_bno);//조건검색가능
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(masterDetail);		
+		return result;
+	} 
 
 	@PostMapping("masterInsert")
 	public int masterInsert(@RequestParam Map<String, Object> pMap) {
@@ -74,13 +83,20 @@ public class BoardRestController {
 		List<Map<String, Object>> list = null;
 		logger.info("qnaList 호출");
 		list = boardLogic.qnaList(pMap);
-		
-		if(list!=null && pMap.get("qna_bno")!=null) { //조회수 증가
-			boardLogic.qnaHitUpdate(pMap);
-		}
 		String result = null;
 		Gson g = new Gson();
 		result = g.toJson(list);
+		return result;
+	}
+	
+	@GetMapping("qnaDetail")
+	public String qnaDetail(@RequestParam Map<String,Object> pMap,int qna_bno) throws Exception {
+		List<Map<String,Object>> qnaDetail = null;
+		logger.info("qnaDetail 호출");
+		qnaDetail = boardLogic.qnaDetail(pMap,qna_bno);//조건검색가능
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(qnaDetail);		
 		return result;
 	}
 	
@@ -149,13 +165,20 @@ public class BoardRestController {
 		List<Map<String, Object>> list = null;
 		logger.info("reviewList 호출");
 		list = boardLogic.reviewList(pMap);
-		
-		if(list!=null && pMap.get("review_bno")!=null) { //조회수 증가
-			boardLogic.reviewHitUpdate(pMap);
-		}
 		String result = null;
 		Gson g = new Gson();
 		result = g.toJson(list);
+		return result;
+	}
+	
+	@GetMapping("reviewDetail")
+	public String reviewDetail(@RequestParam Map<String,Object> pMap,int review_bno) throws Exception {
+		List<Map<String,Object>> reviewDetail = null;
+		logger.info("reviewDetail 호출");
+		reviewDetail = boardLogic.reviewDetail(pMap,review_bno);//조건검색가능
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(reviewDetail);		
 		return result;
 	}
 	
@@ -224,13 +247,20 @@ public class BoardRestController {
 		List<Map<String, Object>> list = null;
 		logger.info("transBList 호출");
 		list = boardLogic.transBList(pMap);
-		
-		if(list!=null && pMap.get("transb_bno")!=null) { //조회수 증가
-			boardLogic.transferHitUpdate(pMap);
-		}
 		String result = null;
 		Gson g = new Gson();
 		result = g.toJson(list);
+		return result;
+	}
+
+	@GetMapping("transBDetail")
+	public String transBDetail(@RequestParam Map<String,Object> pMap,int transB_bno) throws Exception {
+		List<Map<String,Object>> transBDetail = null;
+		logger.info("transBDetail 호출");
+		transBDetail = boardLogic.transBDetail(pMap,transB_bno);//조건검색가능
+		String result = null;
+		Gson g = new Gson();
+		result = g.toJson(transBDetail);		
 		return result;
 	}
 	
@@ -326,40 +356,4 @@ public class BoardRestController {
 		result = g.toJson(boardList);
 		return result;
 	}
-	
-	@PostMapping("transferHitUpdate")
-	public int transferHitUpdate(@RequestParam Map<String, Object> pMap) {
-		logger.info("transferHitUpdate 호출");
-		int result = 0;
-		result = boardLogic.transferHitUpdate(pMap);
-
-		return result;
-	}
-	@PostMapping("masterHitUpdate")
-	public int masterHitUpdate(@RequestParam Map<String, Object> pMap) {
-		logger.info("masterHitUpdate 호출");
-		int result = 0;
-		result = boardLogic.masterHitUpdate(pMap);
-		
-		return result;
-	}
-	@PostMapping("reviewHitUpdate")
-	public int reviewHitUpdate(@RequestParam Map<String, Object> pMap) {
-		logger.info("reviewHitUpdate 호출");
-		int result = 0;
-		result = boardLogic.reviewHitUpdate(pMap);
-		
-		return result;
-	}
-	@PostMapping("qnaHitUpdate")
-	public int qnaHitUpdate(@RequestParam Map<String, Object> pMap) {
-		logger.info("qnaHitUpdate 호출");
-		int result = 0;
-		result = boardLogic.qnaHitUpdate(pMap);
-		
-		return result;
-	}
-	
-
-
 }
