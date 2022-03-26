@@ -3,99 +3,48 @@
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-
 <mapper namespace="com.kh.phoenix.member">
-
-
 	<select id="memberList" parameterType="map" resultType="map">
-		SELECT
-			1 as "member 성공"
-		FROM
-			DUAL
+		SELECT * FROM member
 	</select>
 
-
-<!-- 	
-	<select id="memberList" parameterType="map" resultType="map">
-		SELECT
-			MEM_UID,
-			MEM_NAME,
-			MEM_EMAIL,
-			MEM_BIRTHDAY,
-			MEM_HP,
-			MEM_LV,
-			MEM_EXP,
-			MEM_NICKNAME,
-			MEM_MANAGER
-		FROM myweb_member
-		<trim prefix="WHERE" prefixOverrides="AND|OR">
-			<choose>
-				<when test="mem_uid!=null">
-					mem_uid=#{mem_uid}
-				</when>
-				<when test="mem_name!=null">
-					And mem_name=#{mem_name}
-				</when>
-				<when test="mem_hp!=null">
-					And mem_hp=#{mem_hp}
-				</when>
-				<when test="mem_nickname!=null">
-					And mem_nickname=#{mem_nickname}
-				</when>
-				<when test="mem_email!=null">
-					And mem_email=#{mem_email}
-				</when>
-			</choose>
-		</trim>
-	</select>
-
-	<insert id="memberInsert" parameterType="map">
-		INSERT INTO
-		MYWEB_MEMBER(			
-			MEM_UID,
-			MEM_NAME,
-			MEM_EMAIL,
-			MEM_BIRTHDAY,
-			MEM_HP,
-			MEM_NICKNAME
+	<select id="memberLogin" parameterType="map" resultType="map">  <!-- 멤버 로그인 -> 우선 uid,name으로 테스트 -->
+		SELECT mem_no, mem_name FROM member
+		WHERE mem_uid=#{mem_uid}
+		AND mem_name=#{mem_name}
+	</select> 
+	
+	<select id="memberDetail" parameterType="map" resultType="map">   <!-- 상세 정보(마이페이지) -->
+		SELECT mem_email, mem_tel, mem_addr, mem_addr_dtl, mem_zipcode FROM member
+		WHERE mem_uid=#{mem_uid}
+	</select> 
+	
+	<insert id="memberInsert" parameterType="map">   <!-- 회원 가입 -->
+		INSERT INTO MEMBER(
+			mem_no, mem_uid, mem_name, mem_nickname, mem_email, mem_tel,
+			mem_birthday, mem_gender, mem_addr, mem_addr_dtl, mem_zipcode,
+			mem_status, mem_auth, mem_joindate
 		)
-		VALUES(#{mem_uid},#{mem_name},#{mem_email},#{mem_birthday},
-		#{mem_hp},#{mem_nickname})
+		VALUES(member_seq.NEXTVAL,#{mem_uid},#{mem_name},#{mem_nickname},#{mem_email},#{mem_tel},
+			   #{mem_birthday},#{mem_gender},#{mem_addr},#{mem_addr_dtl},#{mem_zipcode},
+			   #{mem_status},#{mem_auth},TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS'))
 	</insert>
-
-	<update id="memberUpdate" parameterType="map">
-		UPDATE 
-		MYWEB_MEMBER
-		SET
-		<trim suffixOverrides=",">
-			<choose>
-				<when test="mem_name!=null">
-					mem_name=#{mem_name},
-				</when>
-				<when test="mem_birthday!=null">
-					mem_birthday=#{mem_birthday},
-				</when>
-				<when test="mem_hp!=null">
-					mem_hp=#{mem_hp},
-				</when>
-				<when test="mem_lv!=null">
-					mem_lv=#{mem_lv},
-				</when>
-				<when test="mem_exp!=null">
-					mem_exp=#{mem_exp},
-				</when>
-				<when test="mem_nickname!=null">
-					mem_nickname=#{mem_nickname},
-				</when>
-				<when test="mem_manager!=null">
-					mem_manager=#{mem_manager},
-				</when>
-			</choose>
-		</trim>	
+	
+	<update id="memberUpdate" parameterType="map">   <!-- 정보 수정 -->
+		UPDATE member
+			<set>
+				<if test="mem_addr != null">mem_addr=#{mem_addr},</if>
+				<if test="mem_addr_dtl != null">mem_addr_dtl=#{mem_addr_dtl},</if>
+				<if test="mem_zipcode != null">mem_zipcode=#{mem_zipcode},</if>
+				<if test="mem_tel != null">mem_tel=#{mem_tel},</if>
+				<if test="mem_email != null">mem_email=#{mem_email},</if>
+				<if test="mem_status != null">mem_status=#{mem_status},</if>
+			</set>
 		WHERE MEM_UID = #{mem_uid}
 	</update> 
--->
-
 	
- 
+	<delete id="memberDelete" parameterType="map">  <!-- 회원 영구 삭제 -->
+		UPDATE member SET mem_status = 2
+		WHERE MEM_UID = #{mem_uid}
+	</delete> 
 </mapper>

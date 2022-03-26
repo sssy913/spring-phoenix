@@ -2,19 +2,87 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.kh.phoenix.pass">
-
-
+<mapper namespace="com.kh.phoenix.pass"> 
+<!-- 이용권 정보[Pass] -->
+	<select id="myPassList" parameterType="map" resultType="map"> <!-- 내 이용권 정보 확인 -->
+        SELECT p.pass_no, pr.prod_name, p.pass_sday, p.pass_eday, p.pass_cnt, p.pass_type,
+               (SELECT TO_DATE(p.pass_eday) - TO_DATE(p.pass_sday) FROM DUAL) AS "총 일수",
+               (SELECT TO_DATE(p.pass_eday) - TO_DATE(sysdate) FROM DUAL) AS "잔여 일수",
+               (SELECT(pass.pass_cnt - (
+               		SELECT COUNT(*) FROM APPOINTMENT a
+               		WHERE PASS_NO = p.pass_no
+               		AND a.appt_cancdate = '0')) FROM PASS
+                WHERE PASS_NO = p.pass_no) AS "남은 횟수"
+        FROM pass p JOIN orders o
+            ON p.order_no = o.order_no
+                    JOIN product pr
+            ON o.prod_no = pr.prod_no
+        WHERE p.mem_no = #{mem_no}
+	</select>
 	
-	<select id="passList" parameterType="map">
-		SELECT
-			1 as "pass 성공"
-		FROM
-			DUAL
+	<update id="passUpdate" parameterType="map"> <!-- 이용권 업데이트(양도 등으로 인한 업데이트) -->
+		UPDATE pass 
+			<set>
+				<if test="pass_eday != null">pass_eday=#{pass_eday},</if>
+				<if test="pass_status != null">pass_status=#{pass_status},</if>
+				<if test="pass_cnt != null">pass_cnt=#{pass_cnt},</if>
+			</set>
+		WHERE pass_no = #{pass_no}
+	</update> 
+	
+	<select id="searchPass" parameterType="map" resultType="map"> <!-- 출석 시 해당하는 이용권 찾기 -->
+        SELECT p.pass_no FROM pass p 
+            JOIN MEMBER m
+            ON p.mem_no = m.mem_no
+            WHERE p.pass_status IN (0,2)
+            AND p.pass_type = #{pass_type}
+            AND m.mem_tel = #{mem_tel}
+	</select>
+	
+<!-- 예약 정보[appointmet] -->
+	<select id="appointmentList" parameterType="map" resultType="map"> <!-- 나의 예약 정보 -->
+	    SELECT m.mem_name, s.sch_time, c.cls_info,
+	    FROM appointment appt JOIN class c
+	        ON appt.cls_no = c.cls_no
+	    JOIN schedule s
+	        ON c.sch_no = s.sch_no
+	    JOIN pass p
+	        ON appt.pass_no = p.pass_no
+	    JOIN member m 
+	        ON p.mem_no = m.mem_no
+	    WHERE p.pass_no = #{pass_no}
+	     <if test="select_day != null">AND c.cls_sday = #{select_day}</if> <!-- if문으로 특정 날짜 선택 시 해당 날자에 대한 정보 조회 가능, 테스트 안 해 봄 -->
 	</select>
 
-
-
+	<insert id="appointmentInsert" parameterType="map"> <!-- 예약하기 -->
+		INSERT INTO appointment(appt_no, cls_no, pass_no, appt_cancdate, appt_date)
+	        VALUES(appointment_seq.NEXTVAL, #{cls_no}, #{pass_no}, #{appt_cancdate},TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'))
+	</insert>
+	
+	<update id="appointmentCancel" parameterType="map"> <!-- 예약 취소 -->
+		UPDATE appointment
+	           SET appt_cancdate = TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss')
+		WHERE appt_no = #{appt_no}
+	 </update>
+	 
+					<!-- 출결 정보[Attend] -->
+<!-- 	SQL문
+	<insert id="attendInsert" parameterType="map"> 출결 등록 
+		INSERT INTO attend(attd_no, attd_date, pass_no)
+	        VALUES((SELECT MAX(attd_no)+1 FROM attend),
+	        TO_CHAR(SYSDATE, 'yyyy-mm-dd hh24:mm:ss'),#{pass_no})
+	</insert> -->
+	
+	<!-- 프로시저 사용 -->
+	<insert id ="attendInsert" parameterType="Int" statementType="CALLABLE">
+  			{call attend_proc(
+  					#{pass_no})}
+  	</insert>
+	
+	<select id="attendList" parameterType="map" resultType="map"> <!-- 출결 리스트 -->
+		SELECT attd_date
+		   FROM attend x JOIN pass y
+	           ON x.pass_no = y.pass_no
+		WHERE y.mem_no = #{mem_no}
+	</select>
 </mapper>
-
-<!-- xml문서에서 > 크다라는 기호는 태그로 인식되므로 CDATA안에 작성하여 텍스트로 인식되도록 해주어야한다. -->
