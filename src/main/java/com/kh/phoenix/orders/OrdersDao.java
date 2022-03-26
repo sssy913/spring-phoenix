@@ -272,5 +272,32 @@ public class OrdersDao {
 		}
 		return list;
 	}
+
+	public int transferInsert(Map<String, Object> pMap) {
+		logger.info("transferInsert 호출성공");
+		int result = -99;
+		result = sqlSession.insert(NAMESPACE+"transferInsert", pMap);
+		return result;
+	}
+	
+	public Map<String, Object> getTransInfo(Map<String, Object> pMap) {
+		logger.info("getTransInfo 호출성공");
+
+		Map<String,Object> map = null;
+		try {
+			map = sqlSession.selectOne(NAMESPACE+"getTransInfo",pMap);
+			logger.info(map);
+		} catch (Exception e) {
+			logger.info("Exection => "+ e.toString());
+		}
+		return map;
+	}
+
+	public int endOfPass(Map<String, Object> pMap) {
+		logger.info("endOfPass 호출성공");
+		int result = -99;
+		result = sqlSession.update(NAMESPACE+"endOfPass", pMap);
+		return result;
+	}
 	
 }

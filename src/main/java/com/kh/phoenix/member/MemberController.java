@@ -23,6 +23,7 @@ public class MemberController {
 	private MemberLogic memberLogic = null;
 
 	@GetMapping("memberList")
+//	public String memberList(@RequestParam Map<String, Object> pMap) {
 	public String memberList(@RequestParam Map<String, Object> pMap) {
 		List<Map<String, Object>> memberList = null;
 		logger.info("memberList 호출");

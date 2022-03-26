@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -18,6 +19,14 @@ public class BoardLogic {
 	public List<Map<String, Object>> masterList(Map<String, Object> pMap) {
 		List<Map<String, Object>> list = null;
 		list = boardDao.masterList(pMap);
+		return list;
+	}
+	
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Map<String, Object>> masterDetail(Map<String, Object> pMap,int master_bno)throws Exception {
+		List<Map<String, Object>> list = null;
+		boardDao.masterHitUpdate(master_bno);
+		list = boardDao.masterDetail(pMap);
 		return list;
 	}
 	
@@ -42,6 +51,14 @@ public class BoardLogic {
 	public List<Map<String, Object>> qnaList(Map<String, Object> pMap) {
 		List<Map<String, Object>> list = null;
 		list = boardDao.qnaList(pMap);
+		return list;
+	}
+	
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Map<String, Object>> qnaDetail(Map<String, Object> pMap,int qna_bno) throws Exception {
+		List<Map<String, Object>> list = null;
+		boardDao.qnaHitUpdate(qna_bno);
+		list = boardDao.qnaDetail(pMap);
 		return list;
 	}
 	
@@ -93,6 +110,14 @@ public class BoardLogic {
 		return list;
 	}
 	
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Map<String, Object>> reviewDetail(Map<String, Object> pMap,int review_bno) throws Exception {
+		List<Map<String, Object>> list = null;
+		boardDao.reviewHitUpdate(review_bno);
+		list = boardDao.reviewDetail(pMap);
+		return list;
+	}
+	
 	public int reviewInsert(Map<String, Object> pMap) {
 		int result = 0;
 		result = boardDao.reviewInsert(pMap);
@@ -140,6 +165,15 @@ public class BoardLogic {
 		list = boardDao.transBList(pMap);
 		return list;
 	}
+	
+	@Transactional(isolation = Isolation.READ_COMMITTED)
+	public List<Map<String, Object>> transBDetail(Map<String, Object> pMap,int transB_bno) throws Exception {
+		List<Map<String, Object>> list = null;
+		boardDao.transBHitUpdate(transB_bno);
+		list = boardDao.transBDetail(pMap);
+		return list;
+	}
+
 
 	public int transBInsert(Map<String, Object> pMap) {
 		int result = 0;
@@ -207,30 +241,6 @@ public class BoardLogic {
 		return result;
 	}
 	
-	public int transferHitUpdate(Map<String, Object> pMap) {
-		int result = 0;
-		result = boardDao.transferHitUpdate(pMap);
-		return result;
-	}
-	
-	public int masterHitUpdate(Map<String, Object> pMap) {
-		int result = 0;
-		result = boardDao.masterHitUpdate(pMap);
-		return result;
-	}
-	
-	public int reviewHitUpdate(Map<String, Object> pMap) {
-		int result = 0;
-		result = boardDao.reviewHitUpdate(pMap);
-		return result;
-	}
-	
-	public int qnaHitUpdate(Map<String, Object> pMap) {
-		int result = 0;
-		result = boardDao.qnaHitUpdate(pMap);
-		return result;
-	}
-
 
 	
 }

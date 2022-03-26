@@ -29,6 +29,14 @@
 	 ORDER BY master_bno desc
 	</select>
 
+	<select id="masterDetail" parameterType="map" resultType="map">
+	 	select 	master_title, master_content, master_date, 
+	 		   	master_upddate, master_deldate, master_hit, file_name
+	    From 	master_board mb left join gym_file gf
+	    		on mb.master_bno = gf.master_bno 
+		WHERE 	mb.master_bno = #{master_bno}
+	</select>
+
 	<insert id="masterInsert" parameterType="map">
 		INSERT INTO master_board
 		(master_bno, mem_no, master_title, master_content, master_date,
@@ -72,6 +80,14 @@
 			WHERE x.qna_content like '%'||#{tb_search}||'%'
 		</if>
 	 	ORDER BY qna_bno desc
+	</select>
+	
+	<select id="qnaDetail" parameterType="map" resultType="map">
+		  	select qna_title, qna_content,qna_date, qna_upddate, 
+		         qna_deldate, qna_hit, qna_secret, file_name
+		    from QNA_BOARD y LEFT JOIN GYM_FILE z
+		         ON y.qna_bno = z.qna_bno
+			WHERE y.qna_bno = #{qna_bno}
 	</select>
 	
 	
@@ -159,6 +175,14 @@
 			WHERE x.review_content like '%'||#{tb_search}||'%'
 		</if>
 	 ORDER BY master_bno desc
+	</select>
+	
+	<select id="reviewDetail" parameterType="map" resultType="map">
+	 	 select review_title, review_content, review_date, review_upddate, 
+	         review_deldate, review_hit, review_star, file_name
+	    from REVIEW_BOARD y LEFT JOIN GYM_FILE z
+	             ON y.review_bno = z.review_bno
+		WHERE y.review_bno = #{review_bno}
 	</select>
 
 	<insert id="reviewInsert" parameterType="map">
@@ -250,6 +274,13 @@
 			WHERE tb.transb_content like '%'||#{tb_search}||'%'
 		</if>
 		ORDER BY transb_bno desc
+	</select>
+	
+	<select id="transBDetail" parameterType="map" resultType="map">
+	 	 select transb_title, transb_content, transb_date, transb_upddate, 
+	         transb_deldate, transb_hit, transb_status
+	    from TRANSFER_BOARD
+		WHERE transB_bno = #{transB_bno}
 	</select>
 	
 	 <insert id="transBInsert" parameterType = "map"> <!-- 양도 게시판 글 작성 -->
